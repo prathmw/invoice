@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoga Invoice Generator</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #6366F1;
+            --background: #F8FAFC;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        h1 {
+            color: #1F2937;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .plan-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .plan-card {
+            padding: 1.5rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .plan-card.active {
+            border-color: var(--primary);
+            background: #EEF2FF;
+        }
+
+        .plan-price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .plan-duration {
+            color: #6B7280;
+            margin-top: 0.5rem;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--secondary);
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yoga Invoice Generator by Prathm</h1>
+        
+        <div class="plan-selector">
+            <div class="plan-card" data-plan="usd" data-template="aba49b7">
+                <div class="plan-price">$99</div>
+                <div class="plan-duration">12 Months (USD)</div>
+            </div>
+            <div class="plan-card" data-plan="inr12" data-template="fc39f08">
+                <div class="plan-price">₹3999</div>
+                <div class="plan-duration">12 Months (INR)</div>
+            </div>
+            <div class="plan-card" data-plan="inr6" data-template="85b39fb">
+                <div class="plan-price">₹2999</div>
+                <div class="plan-duration">6 Months (INR)</div>
+            </div>
+            <div class="plan-card" data-plan="inr3" data-template="fb81feb">
+                <div class="plan-price">₹1999</div>
+                <div class="plan-duration">3 Months (INR)</div>
+            </div>
+        </div>
+
+        <form id="invoiceForm">
+            <div class="form-section">
+                <h3>Customer Information</h3>
+                <div class="form-grid">
+                    <div>
+                        <label>Full Name</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div>
+                        <label>Email</label>
+                        <input type="email" id="customerEmail" required>
+                    </div>
+                    <div>
+                        <label>Mobile Number</label>
+                        <input type="tel" id="customerMobile" required>
+                    </div>
+                    <div>
+                        <label>Payment ID</label>
+                        <input type="text" id="paymentId" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>Payment Details</h3>
+                <div class="form-grid">
+                    <div>
+                        <label>Receipt Number</label>
+                        <input type="text" id="receiptNumber" required>
+                    </div>
+                    <div>
+                        <label>Invoice Date</label>
+                        <input type="date" id="invoiceDate" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit">Generate Invoice</button>
+            <div class="loader" id="loader"></div>
+        </form>
+    </div>
+
+    <script>
+        const plans = document.querySelectorAll('.plan-card');
+        let selectedPlan = null;
+
+        // Plan selection handler
+        plans.forEach(plan => {
+            plan.addEventListener('click', () => {
+                plans.forEach(p => p.classList.remove('active'));
+                plan.classList.add('active');
+                selectedPlan = {
+                    templateId: plan.dataset.template,
+                    planType: plan.dataset.plan
+                };
+            });
+        });
+
+        // Form submission handler
+        document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loader = document.getElementById('loader');
+            const button = document.querySelector('button');
+            
+            if (!selectedPlan) {
+                alert('Please select a plan first!');
+                return;
+            }
+
+            loader.style.display = 'block';
+            button.disabled = true;
+
+            // Base payload structure
+            const payload = {
+                data: {
+                    date: document.getElementById('invoiceDate').value,
+                    logo: "https://amplify-newapp-dev-165156-deployment.s3.ap-south-1.amazonaws.com/HBPaymentReciept.png",
+                    customer: {
+                        name: document.getElementById('customerName').value,
+                        email: document.getElementById('customerEmail').value,
+                        mobile: document.getElementById('customerMobile').value,
+                        paymentId: document.getElementById('paymentId').value
+                    },
+                    lineItems: [],
+                    receiptNumber: document.getElementById('receiptNumber').value,
+                    contactEmail: "yogaeveryday@habuild.in",
+                    contactNumber: "+917969329660"
+                }
+            };
+
+            // Set plan-specific values
+            switch(selectedPlan.planType) {
+                case 'usd':
+                    payload.data.lineItems = [{
+                        item: "1 Year Yoga Everyday",
+                        price: 99,
+                        description: "Yoga Everyday"
+                    }];
+                    payload.data.contactNumber = "+917969329698";
+                    break;
+                    
+                case 'inr12':
+                    payload.data.lineItems = [{
+                        cgst: 305.01,
+                        sgst: 305.01,
+                        item: "1 Year Yoga Everyday",
+                        price: 3388.98,
+                        quantity: 1,
+                        description: "Yoga Everyday",
+                        totalAmount: 3999
+                    }];
+                    break;
+
+                case 'inr6':
+                    payload.data.lineItems = [{
+                        cgst: 228.74,
+                        sgst: 228.74,
+                        item: "6 Months Yoga Everyday",
+                        price: 2541.52,
+                        quantity: 1,
+                        description: "Yoga Everyday",
+                        totalAmount: 2999
+                    }];
+                    break;
+
+                case 'inr3':
+                    payload.data.lineItems = [{
+                        cgst: 152.47,
+                        sgst: 152.47,
+                        item: "3 Months Yoga Everyday",
+                        price: 1694.06,
+                        quantity: 1,
+                        description: "Yoga Everyday",
+                        totalAmount: 1999
+                    }];
+                    break;
+            }
+
+            try {
+                const response = await fetch(`https://pdfgen.app/api/generate?templateId=${selectedPlan.templateId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'api_key': 'TYR1Wmh5Nqo7Qar9AQnr7'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(await response.text());
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `invoice_${payload.data.receiptNumber}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to generate invoice. Please check console for details.');
+            } finally {
+                loader.style.display = 'none';
+                button.disabled = false;
+            }
+        });
+
+        // Set default date
+        document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>
