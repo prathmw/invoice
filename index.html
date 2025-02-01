@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <!-- Input Form -->
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-bold mb-6">Invoice Details</h2>
+        <form id="invoiceForm" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Receipt Number</label>
+                    <input type="text" id="receiptNumber" required class="input-field">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Date</label>
+                    <input type="date" id="date" required class="input-field">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Customer Name</label>
+                    <input type="text" id="name" required class="input-field">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Mobile Number</label>
+                    <input type="tel" id="mobile" required class="input-field">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium">Email</label>
+                    <input type="email" id="email" required class="input-field">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Payment ID</label>
+                    <input type="text" id="paymentId" required class="input-field">
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Generate Invoice</button>
+        </form>
+    </div>
+
+    <!-- Invoice Preview -->
+    <div id="invoiceContainer" class="hidden max-w-4xl mx-auto bg-white p-8">
+        <div class="border-2 border-[#b2d75f] p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center">
+                    <img src="https://amplify-newapp-dev-165156-deployment.s3.ap-south-1.amazonaws.com/HBPaymentReciept.png" class="h-20 mr-4">
+                    <div>
+                        <p class="text-2xl font-bold">#<span id="previewReceiptNumber"></span></p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold">Habuild Healthtech Private Limited</p>
+                    <p>Bothra Complex</p>
+                    <p>Ganeshpeth, Nagpur</p>
+                    <p>India - 440001</p>
+                    <p>GSTIN - 27AAGCH2762R1ZX</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between mb-8">
+                <div>
+                    <p class="text-sm uppercase text-gray-600 mb-2">Bill To</p>
+                    <p>Name - <span id="previewName"></span></p>
+                    <p>Email - <span id="previewEmail"></span></p>
+                    <p>Mob. No.- <span id="previewMobile"></span></p>
+                    <p>Payment Id - <span id="previewPaymentId"></span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm uppercase text-gray-600">Date</p>
+                    <p id="previewDate"></p>
+                </div>
+            </div>
+
+            <table class="w-full mb-8">
+                <thead>
+                    <tr class="border-y border-gray-300">
+                        <th class="text-left py-3">Item</th>
+                        <th class="text-left py-3">Description</th>
+                        <th class="text-right py-3">Price</th>
+                        <th class="text-right py-3">Quantity</th>
+                        <th class="text-right py-3">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="lineItems"></tbody>
+            </table>
+
+            <div class="text-left mb-4">
+                <p>Contact us:</p>
+                <p>Whatsapp: +918600087862</p>
+                <p>Email: yogaeveryday@habuild.in</p>
+                <p>Happy Habit Building :)</p>
+            </div>
+            <div class="text-right mb-8">
+                <p class="text-xl font-bold">Total: <span id="totalAmount">₹ 0.00</span></p>
+            </div>
+
+            <button id="downloadBtn" class="download-button">Download PDF</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
